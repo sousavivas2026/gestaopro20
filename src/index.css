@@ -98,26 +98,6 @@ All colors MUST be HSL.
   }
 }
 
-/* Sidebar styles - Force text visibility in light mode */
-@layer components {
-  [data-sidebar="sidebar"] {
-    color: hsl(var(--sidebar-foreground));
-  }
-  
-  [data-sidebar="menu-button"] {
-    color: hsl(var(--sidebar-foreground));
-  }
-  
-  [data-sidebar="menu-button"]:hover {
-    background-color: hsl(var(--sidebar-accent));
-    color: hsl(var(--sidebar-accent-foreground));
-  }
-  
-  [data-sidebar="group-label"] {
-    color: hsl(var(--muted-foreground));
-  }
-}
-
 /* Print styles */
 @media print {
   /* Hide UI elements during print */
