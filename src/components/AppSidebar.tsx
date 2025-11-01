@@ -98,7 +98,7 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         isActive
                           ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800 shadow-md font-medium"
-                          : "text-sidebar-foreground hover:bg-blue-600 hover:text-white transition-colors"
+                          : "text-black dark:text-sidebar-foreground hover:bg-blue-600 hover:text-white transition-colors"
                       }
                     >
                       <item.icon className="h-3.5 w-3.5" />
@@ -122,7 +122,7 @@ export function AppSidebar() {
                   className={({ isActive }) => 
                     isActive 
                       ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800 shadow-md font-medium" 
-                      : "text-sidebar-foreground hover:bg-blue-600 hover:text-white transition-colors"
+                      : "text-black dark:text-sidebar-foreground hover:bg-blue-600 hover:text-white transition-colors"
                   }
                 >
                   <UsersIcon className="h-4 w-4" />
