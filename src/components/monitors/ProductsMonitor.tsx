@@ -13,9 +13,16 @@ type ViewType = 'critical' | 'low_stock' | 'purchase_list';
 
 export function ProductsMonitor() {
   const [currentView, setCurrentView] = useState<ViewType>("critical");
-  const { playAlert, alertMode } = useSoundAlert();
+  const { playAlert, alertMode, setAlertMode } = useSoundAlert();
   
   const views: ViewType[] = ['critical', 'low_stock', 'purchase_list'];
+  
+  // Auto-ativar áudio ao entrar no monitor
+  useEffect(() => {
+    if (alertMode === 'disabled') {
+      setAlertMode('on-order');
+    }
+  }, []);
   
   useEffect(() => {
     const interval = setInterval(() => {

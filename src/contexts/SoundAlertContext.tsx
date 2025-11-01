@@ -27,7 +27,7 @@ const DEFAULT_SOUNDS: Record<string, SoundType> = {
 
 export function SoundAlertProvider({ children }: { children: ReactNode }) {
   const [alertMode, setAlertModeState] = useState<AlertMode>(() => {
-    return (localStorage.getItem('alert_mode') as AlertMode) || 'disabled';
+    return (localStorage.getItem('alert_mode') as AlertMode) || 'on-order';
   });
   
   const [audioSource, setAudioSourceState] = useState<AudioSource>(() => {

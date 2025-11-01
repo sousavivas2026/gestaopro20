@@ -14,9 +14,16 @@ type ViewType = 'marketplace' | 'expenses' | 'birthdays' | 'services_summary' | 
 
 export function ManagementMonitor() {
   const [currentView, setCurrentView] = useState<ViewType>("marketplace");
-  const { playAlert } = useSoundAlert();
+  const { playAlert, alertMode, setAlertMode } = useSoundAlert();
   
   const views: ViewType[] = ['marketplace', 'financial_overview', 'accounts_payable', 'expenses', 'services_in_progress', 'services_summary', 'sales_overview', 'production_overview', 'machines_ok', 'machines_defective', 'birthdays'];
+  
+  // Auto-ativar áudio ao entrar no monitor
+  useEffect(() => {
+    if (alertMode === 'disabled') {
+      setAlertMode('on-order');
+    }
+  }, []);
   
   useEffect(() => {
     const interval = setInterval(() => {

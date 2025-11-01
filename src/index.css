@@ -38,12 +38,21 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    --info: 217.2 91.2% 59.8%;
+    --info-foreground: 210 40% 98%;
+    --purple: 271 91% 65%;
+    --purple-foreground: 210 40% 98%;
+
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-foreground: 222.2 84% 15%;
     --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 220 10% 95%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-accent-foreground: 222.2 84% 15%;
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 160 84% 39%;
   }
@@ -86,5 +95,50 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Print styles */
+@media print {
+  /* Hide UI elements during print */
+  button, 
+  .no-print,
+  header,
+  nav,
+  aside,
+  .sidebar,
+  [role="navigation"],
+  [data-sidebar] {
+    display: none !important;
+  }
+
+  /* Reset page styles for print */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Make cards and tables print-friendly */
+  .card, 
+  table {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Ensure content fits on page */
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+  }
+
+  /* Add page title for print */
+  @page {
+    margin: 1.5cm;
   }
 }

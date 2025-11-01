@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, Edit, Package, Copy, Plus, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/CopyButton";
+import { PrintButton } from "@/components/PrintButton";
 
 export default function Produtos() {
   const queryClient = useQueryClient();
@@ -184,10 +185,25 @@ export default function Produtos() {
           </Card>
         )}
 
-        <div className="flex justify-end mb-6">
-          <Button onClick={() => { setShowForm(true); setEditingProduct(null); }} className="gap-2">
-            <Plus className="h-4 w-4" /> Novo Produto
-          </Button>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2">
+            {selectedIds.length > 0 && (
+              <>
+                <Button onClick={handleDeleteSelected} variant="destructive" size="sm" className="gap-2">
+                  <Trash2 className="h-4 w-4" /> Remover {selectedIds.length}
+                </Button>
+                <Button onClick={handleExportSelected} variant="outline" size="sm" className="gap-2">
+                  <FileDown className="h-4 w-4" /> Exportar {selectedIds.length}
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <PrintButton title="Imprimir Produtos" />
+            <Button onClick={() => { setShowForm(true); setEditingProduct(null); }} className="gap-2">
+              <Plus className="h-4 w-4" /> Novo Produto
+            </Button>
+          </div>
         </div>
 
         {showForm && (

@@ -13,9 +13,16 @@ type ViewType = 'pending' | 'in_progress' | 'completed';
 
 export function ProductionMonitor() {
   const [currentView, setCurrentView] = useState<ViewType>("pending");
-  const { playAlert, alertMode } = useSoundAlert();
+  const { playAlert, alertMode, setAlertMode } = useSoundAlert();
   
   const views: ViewType[] = ['pending', 'in_progress', 'completed'];
+  
+  // Auto-ativar áudio ao entrar no monitor
+  useEffect(() => {
+    if (alertMode === 'disabled') {
+      setAlertMode('on-order');
+    }
+  }, []);
   
   useEffect(() => {
     const interval = setInterval(() => {

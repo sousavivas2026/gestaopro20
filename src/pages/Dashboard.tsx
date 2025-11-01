@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { PrintButton } from "@/components/PrintButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -63,13 +64,13 @@ export default function Dashboard() {
     },
   });
 
-  // Calcular produtos mais vendidos
+  // Calcular produtos mais vendidos baseado em vendas reais
   const topProducts = sales.reduce((acc: any[], sale: any) => {
     const existing = acc.find(item => item.product === sale.product_name);
     if (existing) {
-      existing.value += sale.total_revenue || 0;
+      existing.value += (sale.quantity || 0);
     } else {
-      acc.push({ product: sale.product_name, value: sale.total_revenue || 0 });
+      acc.push({ product: sale.product_name || 'Sem nome', value: sale.quantity || 0 });
     }
     return acc;
   }, []).sort((a, b) => b.value - a.value).slice(0, 5);
@@ -101,6 +102,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Visão geral do seu negócio em tempo real</p>
         </div>
         <div className="flex gap-2">
+          <PrintButton title="Imprimir Dashboard" />
           <Button 
             variant="outline" 
             className="gap-2"
@@ -125,16 +127,6 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-
-      {/* Smart Search */}
-      {showSearch && <FloatingAISearch onClose={() => setShowSearch(false)} />}
-      <Button 
-        onClick={() => setShowSearch(true)}
-        className="fixed bottom-4 right-4 rounded-full w-14 h-14 shadow-lg z-40"
-        variant="default"
-      >
-        <Sparkles className="h-6 w-6" />
-      </Button>
 
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
