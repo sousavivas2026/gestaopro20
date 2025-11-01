@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Edit, ShoppingCart, Copy, Plus, FileDown } from "lucide-react";
+import { Trash2, Edit, ShoppingCart, Copy, FileDown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/CopyButton";
 import { PrintButton } from "@/components/PrintButton";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 export default function Vendas() {
   const queryClient = useQueryClient();
@@ -171,11 +172,14 @@ export default function Vendas() {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="p-4 md:p-8 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Vendas</h1>
-          <p className="text-slate-600">Registre e acompanhe todas as vendas</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-2">
+            <ShoppingCart className="h-8 w-8 text-primary" />
+            Vendas
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">Registre e acompanhe todas as vendas</p>
         </div>
 
         <div className="flex justify-between items-center mb-6">
@@ -193,185 +197,175 @@ export default function Vendas() {
           </div>
           <div className="flex gap-2">
             <PrintButton title="Imprimir Vendas" />
-            <Button onClick={() => { setShowForm(!showForm); setEditingSale(null); }} className="gap-2">
+            <Button onClick={() => { setShowForm(true); setEditingSale(null); }} className="gap-2">
               <Plus className="h-4 w-4" /> Nova Venda
             </Button>
           </div>
         </div>
 
-      {showForm && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>{editingSale ? 'Editar Venda' : 'Nova Venda'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Produto *</Label>
-                  <Select name="product_id" defaultValue={editingSale?.product_id || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o produto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {showForm && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{editingSale ? 'Editar Venda' : 'Nova Venda'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Produto *</Label>
+                    <Select name="product_id" defaultValue={editingSale?.product_id || ''}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o produto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map((p: any) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Nome do Produto *</Label>
+                    <Input name="product_name" defaultValue={editingSale?.product_name} required />
+                  </div>
+                  <div>
+                    <Label>Cliente</Label>
+                    <Select name="customer_id" defaultValue={editingSale?.customer_id || ''}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label>Nome do Produto *</Label>
-                  <Input name="product_name" defaultValue={editingSale?.product_name} required />
-                </div>
-                <div>
-                  <Label>Cliente</Label>
-                  <Select name="customer_id" defaultValue={editingSale?.customer_id || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customers.map((c: any) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label>Quantidade *</Label>
-                  <Input type="number" name="quantity" defaultValue={editingSale?.quantity || 1} required />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Quantidade *</Label>
+                    <Input type="number" name="quantity" defaultValue={editingSale?.quantity || 1} required />
+                  </div>
+                  <div>
+                    <Label>Preço Unitário *</Label>
+                    <Input type="number" step="0.01" name="unit_price" defaultValue={editingSale?.unit_price} required />
+                  </div>
+                  <div>
+                    <Label>Custo Unitário</Label>
+                    <Input type="number" step="0.01" name="cost_price" defaultValue={editingSale?.cost_price || 0} />
+                  </div>
+                  <div>
+                    <Label>Data da Venda *</Label>
+                    <Input type="date" name="sale_date" defaultValue={editingSale?.sale_date || new Date().toISOString().split('T')[0]} required />
+                  </div>
                 </div>
-                <div>
-                  <Label>Preço Unitário *</Label>
-                  <Input type="number" step="0.01" name="unit_price" defaultValue={editingSale?.unit_price} required />
-                </div>
-                <div>
-                  <Label>Custo Unitário</Label>
-                  <Input type="number" step="0.01" name="cost_price" defaultValue={editingSale?.cost_price || 0} />
-                </div>
-                <div>
-                  <Label>Data da Venda *</Label>
-                  <Input type="date" name="sale_date" defaultValue={editingSale?.sale_date || new Date().toISOString().split('T')[0]} required />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Método de Pagamento</Label>
-                  <Select name="payment_method" defaultValue={editingSale?.payment_method || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="cartao">Cartão</SelectItem>
-                      <SelectItem value="pix">PIX</SelectItem>
-                      <SelectItem value="boleto">Boleto</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Método de Pagamento</Label>
+                    <Select name="payment_method" defaultValue={editingSale?.payment_method || ''}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="cartao">Cartão</SelectItem>
+                        <SelectItem value="pix">PIX</SelectItem>
+                        <SelectItem value="boleto">Boleto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Observações</Label>
+                    <Textarea name="notes" defaultValue={editingSale?.notes} />
+                  </div>
                 </div>
-                <div>
-                  <Label>Cliente (Nome)</Label>
-                  <Input name="customer_name" defaultValue={editingSale?.customer_name} placeholder="Nome do cliente" />
+
+                <div className="flex gap-2">
+                  <Button type="submit">{editingSale ? 'Atualizar' : 'Salvar'}</Button>
+                  <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingSale(null); }}>
+                    Cancelar
+                  </Button>
+                  <CopyButton 
+                    textToCopy={`Produto: \nCliente: \nQuantidade: 1\nPreço: R$ 0,00\nData: ${new Date().toLocaleDateString()}`}
+                    label="Copiar Modelo"
+                  />
                 </div>
-              </div>
-
-              <div>
-                <Label>Observações</Label>
-                <Textarea name="notes" defaultValue={editingSale?.notes} rows={3} />
-              </div>
-
-              <div className="md:col-span-2 flex gap-2">
-                <Button type="submit">{editingSale ? 'Atualizar' : 'Cadastrar'}</Button>
-                <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingSale(null); }}>
-                  Cancelar
-                </Button>
-                <CopyButton 
-                  textToCopy={`Produto: \nCliente: \nQuantidade: 1\nPreço: R$ 0,00\nData: ${new Date().toLocaleDateString()}`}
-                  label="Copiar Modelo"
-                />
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Lista de Vendas</CardTitle>
+              <CardTitle>Vendas Cadastradas</CardTitle>
               {selectedIds.length > 0 && (
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={handleExportSelected}>
-                    <FileDown className="h-4 w-4 mr-2" /> Exportar ({selectedIds.length})
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={handleDeleteSelected}>
-                    <Trash2 className="h-4 w-4 mr-2" /> Remover ({selectedIds.length})
-                  </Button>
-                </div>
+                <Badge variant="secondary">{selectedIds.length} selecionado(s)</Badge>
               )}
             </div>
           </CardHeader>
           <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedIds.length === sales.length && sales.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Quantidade</TableHead>
-                <TableHead>Valor Total</TableHead>
-                <TableHead>Lucro</TableHead>
-                <TableHead>Pagamento</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sales.map((sale: any) => (
-                <TableRow key={sale.id}>
-                  <TableCell>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
                     <Checkbox
-                      checked={selectedIds.includes(sale.id)}
-                      onCheckedChange={() => handleSelectOne(sale.id)}
+                      checked={selectedIds.length === sales.length && sales.length > 0}
+                      onCheckedChange={handleSelectAll}
                     />
-                  </TableCell>
-                  <TableCell>{format(new Date(sale.sale_date), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell>{sale.product_name}</TableCell>
-                  <TableCell>{sale.customer_name || '-'}</TableCell>
-                  <TableCell>{sale.quantity}</TableCell>
-                  <TableCell>R$ {sale.total_revenue?.toFixed(2)}</TableCell>
-                  <TableCell className={sale.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
-                    R$ {sale.profit?.toFixed(2)}
-                  </TableCell>
-                  <TableCell>{sale.payment_method || '-'}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => { setEditingSale(sale); setShowForm(true); }}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleClone(sale)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(sale.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Qtd</TableHead>
+                  <TableHead>Receita</TableHead>
+                  <TableHead>Lucro</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {sales.map((sale: any) => (
+                  <TableRow key={sale.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(sale.id)}
+                        onCheckedChange={() => handleSelectOne(sale.id)}
+                      />
+                    </TableCell>
+                    <TableCell>{format(new Date(sale.sale_date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell className="font-medium">{sale.product_name}</TableCell>
+                    <TableCell>{sale.customer_name || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{sale.quantity}</Badge>
+                    </TableCell>
+                    <TableCell>R$ {sale.total_revenue?.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={sale.profit >= 0 ? "default" : "destructive"}>
+                        R$ {sale.profit?.toFixed(2)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => { setEditingSale(sale); setShowForm(true); }}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleClone(sale)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(sale.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
