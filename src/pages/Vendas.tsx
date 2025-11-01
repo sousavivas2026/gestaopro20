@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Edit, ShoppingCart, Copy, FileText } from "lucide-react";
+import { Trash2, Edit, ShoppingCart, Copy, Plus, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/CopyButton";
+import { PrintButton } from "@/components/PrintButton";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Vendas() {
@@ -170,27 +171,41 @@ export default function Vendas() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <ShoppingCart className="h-8 w-8 text-primary" />
-            Vendas
-          </h1>
-          <p className="text-muted-foreground">Registre e acompanhe todas as vendas</p>
+    <div className="p-4 md:p-8 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Vendas</h1>
+          <p className="text-slate-600">Registre e acompanhe todas as vendas</p>
         </div>
-        <Button onClick={() => { setShowForm(!showForm); setEditingSale(null); }}>
-          Nova Venda
-        </Button>
-      </div>
+
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2">
+            {selectedIds.length > 0 && (
+              <>
+                <Button onClick={handleDeleteSelected} variant="destructive" size="sm" className="gap-2">
+                  <Trash2 className="h-4 w-4" /> Remover {selectedIds.length}
+                </Button>
+                <Button onClick={handleExportSelected} variant="outline" size="sm" className="gap-2">
+                  <FileDown className="h-4 w-4" /> Exportar {selectedIds.length}
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <PrintButton title="Imprimir Vendas" />
+            <Button onClick={() => { setShowForm(!showForm); setEditingSale(null); }} className="gap-2">
+              <Plus className="h-4 w-4" /> Nova Venda
+            </Button>
+          </div>
+        </div>
 
       {showForm && (
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>{editingSale ? 'Editar Venda' : 'Nova Venda'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Produto *</Label>
@@ -259,13 +274,18 @@ export default function Vendas() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Observações</Label>
-                  <Textarea name="notes" defaultValue={editingSale?.notes} />
+                  <Label>Cliente (Nome)</Label>
+                  <Input name="customer_name" defaultValue={editingSale?.customer_name} placeholder="Nome do cliente" />
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button type="submit">Salvar</Button>
+              <div>
+                <Label>Observações</Label>
+                <Textarea name="notes" defaultValue={editingSale?.notes} rows={3} />
+              </div>
+
+              <div className="md:col-span-2 flex gap-2">
+                <Button type="submit">{editingSale ? 'Atualizar' : 'Cadastrar'}</Button>
                 <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingSale(null); }}>
                   Cancelar
                 </Button>
@@ -279,23 +299,23 @@ export default function Vendas() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Vendas Cadastradas</CardTitle>
-            {selectedIds.length > 0 && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleExportSelected}>
-                  <FileText className="h-4 w-4 mr-2" /> Relatório ({selectedIds.length})
-                </Button>
-                <Button size="sm" variant="destructive" onClick={handleDeleteSelected}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Remover ({selectedIds.length})
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Lista de Vendas</CardTitle>
+              {selectedIds.length > 0 && (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={handleExportSelected}>
+                    <FileDown className="h-4 w-4 mr-2" /> Exportar ({selectedIds.length})
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={handleDeleteSelected}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Remover ({selectedIds.length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -335,13 +355,13 @@ export default function Vendas() {
                   <TableCell>{sale.payment_method || '-'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button size="icon" variant="outline" onClick={() => { setEditingSale(sale); setShowForm(true); }}>
+                      <Button size="sm" variant="outline" onClick={() => { setEditingSale(sale); setShowForm(true); }}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="outline" onClick={() => handleClone(sale)}>
+                      <Button size="sm" variant="outline" onClick={() => handleClone(sale)}>
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="destructive" onClick={() => deleteMutation.mutate(sale.id)}>
+                      <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(sale.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -352,6 +372,7 @@ export default function Vendas() {
           </Table>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
