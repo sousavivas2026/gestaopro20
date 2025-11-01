@@ -12,6 +12,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -19,7 +20,15 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isResetPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth`,
+        });
+        if (error) throw error;
+        toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
+        setIsResetPassword(false);
+        setIsLogin(true);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -57,7 +66,9 @@ export default function Auth() {
           </div>
           <CardTitle className="text-2xl text-center">Gestão PRO</CardTitle>
           <CardDescription className="text-center">
-            {isLogin
+            {isResetPassword
+              ? "Digite seu email para recuperar a senha"
+              : isLogin
               ? "Entre com suas credenciais para acessar o sistema"
               : "Crie sua conta para começar"}
           </CardDescription>
@@ -75,31 +86,51 @@ export default function Auth() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            {!isResetPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Processando..." : isLogin ? "Entrar" : "Cadastrar"}
+              {loading 
+                ? "Processando..." 
+                : isResetPassword 
+                ? "Enviar Email de Recuperação" 
+                : isLogin 
+                ? "Entrar" 
+                : "Cadastrar"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm space-y-2">
+            {!isResetPassword && (
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-primary hover:underline block w-full"
+              >
+                {isLogin
+                  ? "Não tem uma conta? Cadastre-se"
+                  : "Já tem uma conta? Faça login"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
+              onClick={() => {
+                setIsResetPassword(!isResetPassword);
+                setIsLogin(false);
+              }}
+              className="text-primary hover:underline block w-full"
             >
-              {isLogin
-                ? "Não tem uma conta? Cadastre-se"
-                : "Já tem uma conta? Faça login"}
+              {isResetPassword ? "Voltar para login" : "Esqueci minha senha"}
             </button>
           </div>
         </CardContent>
