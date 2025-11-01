@@ -99,21 +99,21 @@ export default function Produtos() {
     const formData = new FormData(e.currentTarget);
     
     // Filter out empty cost items
-    const validCostItems = costItems.filter(item => item.description.trim() && item.cost > 0);
+    const validCostItems = costItems.filter(item => item.description?.trim() && item.cost > 0);
     const totalDetailedCost = validCostItems.reduce((sum, item) => sum + (item.cost || 0), 0);
     
     const data = {
       name: formData.get('name'),
-      sku: formData.get('sku'),
-      description: formData.get('description'),
-      category: formData.get('category'),
+      sku: formData.get('sku') || null,
+      description: formData.get('description') || null,
+      category: formData.get('category') || null,
       unit_price: parseFloat(formData.get('unit_price') as string) || 0,
       cost_price: totalDetailedCost > 0 ? totalDetailedCost : (parseFloat(formData.get('cost_price') as string) || 0),
-      cost_items: validCostItems.length > 0 ? validCostItems : [],
+      cost_items: validCostItems,
       stock_quantity: parseInt(formData.get('stock_quantity') as string) || 0,
       minimum_stock: parseInt(formData.get('minimum_stock') as string) || 0,
-      location: formData.get('location'),
-      supplier_id: formData.get('supplier_id') || null,
+      location: formData.get('location') || null,
+      supplier_id: formData.get('supplier_id') === 'none' ? null : formData.get('supplier_id'),
       active: true,
     };
 
