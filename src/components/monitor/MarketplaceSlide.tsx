@@ -27,10 +27,10 @@ export default function MarketplaceSlide() {
   const pendingOrders = orders.filter(o => o.status === 'pendente');
 
   useEffect(() => {
-    if (pendingOrders.length > 0 && alertMode === 'on-order') {
+    if (pendingOrders.length > 0 && alertMode !== 'disabled') {
       playAlert('novo_pedido');
     }
-  }, [dataUpdatedAt, alertMode, playAlert]);
+  }, [dataUpdatedAt, alertMode, playAlert, pendingOrders.length]);
 
   const getStatusConfig = (status: string) => {
     const configs = {
