@@ -26,6 +26,8 @@ export default function Produtos() {
   const [showForm, setShowForm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [costItems, setCostItems] = useState<CostItem[]>([{ description: "", cost: 0 }]);
+  const [unitPrice, setUnitPrice] = useState<number>(0);
+  const [manualCostPrice, setManualCostPrice] = useState<number>(0);
 
   // Load cost items when editing a product
   useEffect(() => {
@@ -37,6 +39,8 @@ export default function Produtos() {
     } else {
       setCostItems([{ description: "", cost: 0 }]);
     }
+    setUnitPrice(editingProduct?.unit_price || 0);
+    setManualCostPrice(editingProduct?.cost_price || 0);
   }, [editingProduct]);
 
   const { data: products = [] } = useQuery({
@@ -141,11 +145,13 @@ export default function Produtos() {
   };
 
   const totalDetailedCost = costItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+  const effectiveCost = totalDetailedCost > 0 ? totalDetailedCost : manualCostPrice;
+  const profit = unitPrice - effectiveCost;
+  const profitMargin = unitPrice > 0 ? (profit / unitPrice) * 100 : 0;
 
-  const handleClone = async (product: any) => {
-    const { id, created_date, updated_date, ...clonedData } = product;
-    // Clone with cost_items included
-    await createMutation.mutateAsync({
+  const handleClone = (product: any) => {
+    const { id, created_date, updated_date, suppliers, ...clonedData } = product;
+    createMutation.mutate({
       ...clonedData,
       name: `${clonedData.name} (Cópia)`,
       cost_items: product.cost_items || [],
@@ -285,7 +291,15 @@ export default function Produtos() {
                 </div>
                 <div>
                   <Label htmlFor="unit_price">Preço de Venda *</Label>
-                  <Input id="unit_price" name="unit_price" type="number" step="0.01" defaultValue={editingProduct?.unit_price} required />
+                  <Input 
+                    id="unit_price" 
+                    name="unit_price" 
+                    type="number" 
+                    step="0.01" 
+                    defaultValue={editingProduct?.unit_price} 
+                    onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                    required 
+                  />
                 </div>
                 <div>
                   <Label htmlFor="cost_price">Preço de Custo Manual</Label>
@@ -295,12 +309,43 @@ export default function Produtos() {
                     type="number" 
                     step="0.01" 
                     defaultValue={editingProduct?.cost_price}
+                    onChange={(e) => setManualCostPrice(parseFloat(e.target.value) || 0)}
                     placeholder={totalDetailedCost > 0 ? `Custo detalhado: R$ ${totalDetailedCost.toFixed(2)}` : ""}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {totalDetailedCost > 0 ? 'Usando custo detalhado' : 'Ou use itens de custo detalhados abaixo'}
                   </p>
                 </div>
+                
+                {(unitPrice > 0 || effectiveCost > 0) && (
+                  <div className="md:col-span-2">
+                    <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-2">
+                      <h3 className="font-semibold text-sm">Preview de Rentabilidade</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Preço de Venda:</span>
+                          <p className="font-bold text-lg">R$ {unitPrice.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Custo Total:</span>
+                          <p className="font-bold text-lg">R$ {effectiveCost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Lucro Unitário:</span>
+                          <p className={`font-bold text-lg ${profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            R$ {profit.toFixed(2)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Margem de Lucro:</span>
+                          <p className={`font-bold text-lg ${profitMargin >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {profitMargin.toFixed(1)}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="stock_quantity">Qtd. em Estoque *</Label>
                   <Input id="stock_quantity" name="stock_quantity" type="number" defaultValue={editingProduct?.stock_quantity} required />
