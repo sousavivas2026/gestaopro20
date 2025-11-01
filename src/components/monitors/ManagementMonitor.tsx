@@ -10,13 +10,13 @@ import MarketplaceSlide from "@/components/monitor/MarketplaceSlide";
 import { useSoundAlert } from "@/contexts/SoundAlertContext";
 import { MonitorAudioControls } from "./MonitorAudioControls";
 
-type ViewType = 'marketplace' | 'expenses' | 'birthdays' | 'services_summary';
+type ViewType = 'marketplace' | 'expenses' | 'birthdays' | 'services_summary' | 'financial_overview' | 'accounts_payable' | 'services_in_progress' | 'machines_ok' | 'machines_defective' | 'sales_overview' | 'production_overview';
 
 export function ManagementMonitor() {
   const [currentView, setCurrentView] = useState<ViewType>("marketplace");
   const { playAlert } = useSoundAlert();
   
-  const views: ViewType[] = ['marketplace', 'expenses', 'birthdays', 'services_summary'];
+  const views: ViewType[] = ['marketplace', 'financial_overview', 'accounts_payable', 'expenses', 'services_in_progress', 'services_summary', 'sales_overview', 'production_overview', 'machines_ok', 'machines_defective', 'birthdays'];
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -78,23 +78,77 @@ export function ManagementMonitor() {
     refetchInterval: 5000,
   });
 
+  const { data: sales = [] } = useQuery({
+    queryKey: ['sales-monitor'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('sales').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 5000,
+  });
+
+  const { data: productionOrders = [] } = useQuery({
+    queryKey: ['production-monitor'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('production_orders').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 5000,
+  });
+
+  const { data: machines = [] } = useQuery({
+    queryKey: ['machines-monitor'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('machines_vehicles').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 5000,
+  });
+
   const totalServices = servicesData.reduce((sum: number, service: any) => sum + (service.total_value || 0), 0);
+  const totalSales = sales.reduce((sum: number, sale: any) => sum + (sale.total_revenue || 0), 0);
+  const totalExpenses = expenses.reduce((sum: number, exp: any) => sum + (exp.value || 0), 0);
+  const totalProfit = totalSales - totalExpenses;
+  
+  const servicesInProgress = servicesData.filter((s: any) => s.status === 'pendente' || s.status === 'em_andamento');
+  const machinesOk = machines.filter((m: any) => m.status === 'ativo');
+  const machinesDefective = machines.filter((m: any) => m.status === 'manutencao' || m.status === 'defeito');
+  const accountsPayable = expenses.filter((e: any) => !e.paid);
+  const pendingProduction = productionOrders.filter((p: any) => p.status === 'pendente');
+  const inProgressProduction = productionOrders.filter((p: any) => p.status === 'em_producao');
 
   const getViewTitle = () => {
     switch(currentView) {
       case 'marketplace': return 'PEDIDOS MARKETPLACE';
+      case 'financial_overview': return 'VISÃO FINANCEIRA';
+      case 'accounts_payable': return 'CONTAS A PAGAR';
       case 'expenses': return 'PAGAMENTOS URGENTES';
-      case 'birthdays': return 'ANIVERSARIANTES';
+      case 'services_in_progress': return 'SERVIÇOS EM ANDAMENTO';
       case 'services_summary': return 'RESUMO DE SERVIÇOS';
+      case 'sales_overview': return 'RESUMO DE VENDAS';
+      case 'production_overview': return 'VISÃO DE PRODUÇÃO';
+      case 'machines_ok': return 'MÁQUINAS ATIVAS';
+      case 'machines_defective': return 'MÁQUINAS COM DEFEITO';
+      case 'birthdays': return 'ANIVERSARIANTES';
     }
   };
 
   const getViewIcon = () => {
     switch(currentView) {
       case 'marketplace': return <ShoppingBag className="w-16 h-16 text-purple-400" />;
+      case 'financial_overview': return <DollarSign className="w-16 h-16 text-green-400" />;
+      case 'accounts_payable': return <AlertCircle className="w-16 h-16 text-orange-400" />;
       case 'expenses': return <AlertCircle className="w-16 h-16 text-red-400" />;
-      case 'birthdays': return <Cake className="w-16 h-16 text-pink-400" />;
+      case 'services_in_progress': return <Wrench className="w-16 h-16 text-blue-400" />;
       case 'services_summary': return <Wrench className="w-16 h-16 text-indigo-400" />;
+      case 'sales_overview': return <ShoppingBag className="w-16 h-16 text-emerald-400" />;
+      case 'production_overview': return <ShoppingBag className="w-16 h-16 text-cyan-400" />;
+      case 'machines_ok': return <AlertCircle className="w-16 h-16 text-green-400" />;
+      case 'machines_defective': return <AlertCircle className="w-16 h-16 text-red-400" />;
+      case 'birthdays': return <Cake className="w-16 h-16 text-pink-400" />;
     }
   };
 
@@ -210,6 +264,101 @@ export function ManagementMonitor() {
             </>
           )}
 
+          {currentView === 'financial_overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="bg-gradient-to-br from-green-900 to-emerald-900 border-2 border-green-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <DollarSign className="w-16 h-16 mx-auto mb-4 text-green-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Total Vendas</h3>
+                    <p className="text-4xl font-bold text-white">R$ {totalSales.toFixed(2)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-red-900 to-orange-900 border-2 border-red-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Total Despesas</h3>
+                    <p className="text-4xl font-bold text-white">R$ {totalExpenses.toFixed(2)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-blue-900 to-indigo-900 border-2 border-blue-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <DollarSign className="w-16 h-16 mx-auto mb-4 text-blue-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Lucro Líquido</h3>
+                    <p className="text-4xl font-bold text-white">R$ {totalProfit.toFixed(2)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {currentView === 'accounts_payable' && (
+            <>
+              {accountsPayable.length === 0 ? (
+                <div className="text-center py-20">
+                  <DollarSign className="w-24 h-24 mx-auto mb-6 text-slate-600" />
+                  <p className="text-3xl text-slate-400">Todas as contas pagas!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {accountsPayable.map((account: any) => (
+                    <Card key={account.id} className="bg-gradient-to-br from-orange-900 to-yellow-900 border-2 border-orange-600 shadow-2xl">
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-orange-300" />
+                          <h3 className="text-2xl font-bold text-white mb-2">{account.description}</h3>
+                          <div className="bg-black/30 rounded-lg p-4 mb-4">
+                            <p className="text-orange-300 text-lg">Valor</p>
+                            <p className="text-4xl font-bold text-white">R$ {account.value?.toFixed(2)}</p>
+                          </div>
+                          {account.due_date && (
+                            <p className="text-orange-200">Vencimento: {format(parseISO(account.due_date), "dd/MM/yyyy")}</p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {currentView === 'services_in_progress' && (
+            <>
+              {servicesInProgress.length === 0 ? (
+                <div className="text-center py-20">
+                  <Wrench className="w-24 h-24 mx-auto mb-6 text-slate-600" />
+                  <p className="text-3xl text-slate-400">Nenhum serviço em andamento!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {servicesInProgress.map((service: any) => (
+                    <Card key={service.id} className="bg-gradient-to-br from-blue-900 to-cyan-900 border-2 border-blue-600 shadow-2xl">
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <Wrench className="w-16 h-16 mx-auto mb-4 text-blue-300" />
+                          <h3 className="text-2xl font-bold text-white mb-2">{service.service_type}</h3>
+                          <p className="text-blue-200 mb-4">Cliente: {service.customer_name}</p>
+                          <div className="bg-black/30 rounded-lg p-4 mb-4">
+                            <p className="text-blue-300 text-lg">Valor</p>
+                            <p className="text-4xl font-bold text-white">R$ {service.total_value?.toFixed(2)}</p>
+                          </div>
+                          <Badge className="bg-blue-600 text-lg px-4 py-2">
+                            {service.status === 'pendente' ? 'PENDENTE' : 'EM ANDAMENTO'}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           {currentView === 'services_summary' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card className="bg-gradient-to-br from-indigo-900 to-violet-900 border-2 border-indigo-600 shadow-2xl">
@@ -222,6 +371,98 @@ export function ManagementMonitor() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {currentView === 'sales_overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="bg-gradient-to-br from-emerald-900 to-green-900 border-2 border-emerald-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-emerald-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Total Vendas</h3>
+                    <p className="text-4xl font-bold text-white">{sales.length}</p>
+                    <p className="text-2xl text-emerald-200 mt-4">R$ {totalSales.toFixed(2)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {currentView === 'production_overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="bg-gradient-to-br from-cyan-900 to-blue-900 border-2 border-cyan-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-cyan-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Pedidos Pendentes</h3>
+                    <p className="text-4xl font-bold text-white">{pendingProduction.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-gradient-to-br from-indigo-900 to-purple-900 border-2 border-indigo-600 shadow-2xl">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-indigo-300" />
+                    <h3 className="text-2xl font-bold text-white mb-2">Em Produção</h3>
+                    <p className="text-4xl font-bold text-white">{inProgressProduction.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {currentView === 'machines_ok' && (
+            <>
+              {machinesOk.length === 0 ? (
+                <div className="text-center py-20">
+                  <AlertCircle className="w-24 h-24 mx-auto mb-6 text-slate-600" />
+                  <p className="text-3xl text-slate-400">Nenhuma máquina ativa!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {machinesOk.map((machine: any) => (
+                    <Card key={machine.id} className="bg-gradient-to-br from-green-900 to-emerald-900 border-2 border-green-600 shadow-2xl">
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-green-300" />
+                          <h3 className="text-2xl font-bold text-white mb-2">{machine.name}</h3>
+                          <p className="text-green-200 mb-4">{machine.type}</p>
+                          <Badge className="bg-green-600 text-lg px-4 py-2">ATIVO</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {currentView === 'machines_defective' && (
+            <>
+              {machinesDefective.length === 0 ? (
+                <div className="text-center py-20">
+                  <AlertCircle className="w-24 h-24 mx-auto mb-6 text-slate-600" />
+                  <p className="text-3xl text-slate-400">Nenhuma máquina com defeito!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {machinesDefective.map((machine: any) => (
+                    <Card key={machine.id} className="bg-gradient-to-br from-red-900 to-orange-900 border-2 border-red-600 shadow-2xl">
+                      <CardContent className="pt-6">
+                        <div className="text-center">
+                          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-300" />
+                          <h3 className="text-2xl font-bold text-white mb-2">{machine.name}</h3>
+                          <p className="text-red-200 mb-4">{machine.type}</p>
+                          <Badge className="bg-red-600 text-lg px-4 py-2">
+                            {machine.status === 'manutencao' ? 'MANUTENÇÃO' : 'DEFEITO'}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

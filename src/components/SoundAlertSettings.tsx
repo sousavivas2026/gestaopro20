@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useSoundAlert } from '@/contexts/SoundAlertContext';
 import { SoundAlertAudioManager } from './SoundAlertAudioManager';
+import { SoundAlertManualUpload } from './SoundAlertManualUpload';
 
 const SOUND_OPTIONS = [
   { value: 'novo_pedido', label: 'Novo Pedido' },
@@ -107,6 +108,7 @@ export function SoundAlertSettings() {
       </Card>
 
       <SoundAlertAudioManager />
+      <SoundAlertManualUpload />
     </div>
   );
 }

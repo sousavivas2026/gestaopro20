@@ -160,34 +160,8 @@ export default function GestaoCaixa() {
 
       {showForm && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>Registrar Movimentação</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="default"
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  const btn = document.getElementById('entrada-btn');
-                  if (btn) btn.click();
-                }}
-              >
-                <TrendingUp className="h-4 w-4" />
-                Entrada
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                className="gap-2"
-                onClick={() => {
-                  const btn = document.getElementById('saida-btn');
-                  if (btn) btn.click();
-                }}
-              >
-                <TrendingDown className="h-4 w-4" />
-                Saída
-              </Button>
-            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} id="cash-form" className="space-y-4">
@@ -227,23 +201,34 @@ export default function GestaoCaixa() {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" id="entrada-btn" className="hidden" onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('movement-type')?.setAttribute('value', 'entrada');
-                  const form = document.getElementById('cash-form') as HTMLFormElement;
-                  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                }}>Entrada</Button>
-                <Button type="submit" id="saida-btn" className="hidden" onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('movement-type')?.setAttribute('value', 'saida');
-                  const form = document.getElementById('cash-form') as HTMLFormElement;
-                  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                }}>Saída</Button>
+                <Button 
+                  type="submit" 
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('movement-type')?.setAttribute('value', 'entrada');
+                    const form = document.getElementById('cash-form') as HTMLFormElement;
+                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Salvar Entrada
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="destructive"
+                  className="gap-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('movement-type')?.setAttribute('value', 'saida');
+                    const form = document.getElementById('cash-form') as HTMLFormElement;
+                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  <TrendingDown className="h-4 w-4" />
+                  Salvar Saída
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
-                <CopyButton 
-                  textToCopy={`Tipo: Entrada/Saída\nValor: R$ 0,00\nCategoria: Outros\nDescrição: `}
-                  label="Copiar Modelo"
-                />
               </div>
             </form>
           </CardContent>

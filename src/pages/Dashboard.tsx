@@ -45,6 +45,15 @@ export default function Dashboard() {
     },
   });
 
+  const { data: orders = [] } = useQuery({
+    queryKey: ['dashboard-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('marketplace_orders').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const { data: sales = [] } = useQuery({
     queryKey: ['dashboard-sales-month'],
     queryFn: async () => {
@@ -119,15 +128,13 @@ export default function Dashboard() {
 
       {/* Smart Search */}
       {showSearch && <FloatingAISearch onClose={() => setShowSearch(false)} />}
-      {!showSearch && (
-        <Button 
-          onClick={() => setShowSearch(true)}
-          className="fixed bottom-4 right-4 rounded-full w-14 h-14 shadow-lg z-40"
-          variant="default"
-        >
-          <Sparkles className="h-6 w-6" />
-        </Button>
-      )}
+      <Button 
+        onClick={() => setShowSearch(true)}
+        className="fixed bottom-4 right-4 rounded-full w-14 h-14 shadow-lg z-40"
+        variant="default"
+      >
+        <Sparkles className="h-6 w-6" />
+      </Button>
 
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -167,6 +174,12 @@ export default function Dashboard() {
           value={products.length.toString()}
           icon={Package}
           variant="warning"
+        />
+        <MetricCard
+          title="Pedidos Marketplace"
+          value={orders.length.toString()}
+          icon={ShoppingCart}
+          variant="info"
         />
       </div>
 
