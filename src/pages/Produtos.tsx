@@ -10,16 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Edit, Package, Copy, Plus, FileDown } from "lucide-react";
+import { Trash2, Edit, Package, Copy, Plus, FileDown, X } from "lucide-react";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/CopyButton";
 import { PrintButton } from "@/components/PrintButton";
+
+interface CostItem {
+  description: string;
+  cost: number;
+}
 
 export default function Produtos() {
   const queryClient = useQueryClient();
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [costItems, setCostItems] = useState<CostItem[]>([{ description: "", cost: 0 }]);
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -79,13 +85,16 @@ export default function Produtos() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const totalDetailedCost = costItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+    
     const data = {
       name: formData.get('name'),
       sku: formData.get('sku'),
       description: formData.get('description'),
       category: formData.get('category'),
       unit_price: parseFloat(formData.get('unit_price') as string) || 0,
-      cost_price: parseFloat(formData.get('cost_price') as string) || 0,
+      cost_price: totalDetailedCost > 0 ? totalDetailedCost : (parseFloat(formData.get('cost_price') as string) || 0),
       stock_quantity: parseInt(formData.get('stock_quantity') as string) || 0,
       minimum_stock: parseInt(formData.get('minimum_stock') as string) || 0,
       location: formData.get('location'),
@@ -99,6 +108,24 @@ export default function Produtos() {
       createMutation.mutate(data);
     }
   };
+
+  const addCostItem = () => {
+    setCostItems([...costItems, { description: "", cost: 0 }]);
+  };
+
+  const removeCostItem = (index: number) => {
+    if (costItems.length > 1) {
+      setCostItems(costItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateCostItem = (index: number, field: 'description' | 'cost', value: string | number) => {
+    const updated = [...costItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setCostItems(updated);
+  };
+
+  const totalDetailedCost = costItems.reduce((sum, item) => sum + (item.cost || 0), 0);
 
   const handleClone = async (product: any) => {
     const { id, created_date, updated_date, ...clonedData } = product;
@@ -244,8 +271,18 @@ export default function Produtos() {
                   <Input id="unit_price" name="unit_price" type="number" step="0.01" defaultValue={editingProduct?.unit_price} required />
                 </div>
                 <div>
-                  <Label htmlFor="cost_price">Preço de Custo *</Label>
-                  <Input id="cost_price" name="cost_price" type="number" step="0.01" defaultValue={editingProduct?.cost_price} required />
+                  <Label htmlFor="cost_price">Preço de Custo Manual</Label>
+                  <Input 
+                    id="cost_price" 
+                    name="cost_price" 
+                    type="number" 
+                    step="0.01" 
+                    defaultValue={editingProduct?.cost_price}
+                    placeholder={totalDetailedCost > 0 ? `Custo detalhado: R$ ${totalDetailedCost.toFixed(2)}` : ""}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {totalDetailedCost > 0 ? 'Usando custo detalhado' : 'Ou use itens de custo detalhados abaixo'}
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="stock_quantity">Qtd. em Estoque *</Label>
@@ -263,6 +300,57 @@ export default function Produtos() {
                   <Label htmlFor="description">Descrição</Label>
                   <Textarea id="description" name="description" defaultValue={editingProduct?.description} rows={3} />
                 </div>
+
+                <div className="md:col-span-2 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold">Itens de Custo Detalhados</Label>
+                    <Button type="button" onClick={addCostItem} variant="outline" size="sm" className="gap-2">
+                      <Plus className="h-4 w-4" /> Adicionar Item
+                    </Button>
+                  </div>
+                  
+                  {costItems.map((item, index) => (
+                    <div key={index} className="flex gap-2 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Ex: MDF 15mm, Tinta acrílica..."
+                          value={item.description}
+                          onChange={(e) => updateCostItem(index, 'description', e.target.value)}
+                        />
+                      </div>
+                      <div className="w-32">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="R$ 0,00"
+                          value={item.cost || ''}
+                          onChange={(e) => updateCostItem(index, 'cost', parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeCostItem(index)}
+                        disabled={costItems.length === 1}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+
+                  {totalDetailedCost > 0 && (
+                    <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium">Custo Total dos Itens:</span>
+                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                          R$ {totalDetailedCost.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="md:col-span-2 flex gap-2">
                   <Button type="submit">{editingProduct ? 'Atualizar' : 'Cadastrar'}</Button>
                   <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditingProduct(null); }}>Cancelar</Button>

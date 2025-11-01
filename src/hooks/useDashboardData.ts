@@ -48,13 +48,16 @@ export function useDashboardData() {
   });
 
   const totalEntradas = sales.reduce((sum: number, s: any) => sum + (s.total_revenue || 0), 0);
-  const totalSaidas = expenses.reduce((sum: number, e: any) => sum + (e.value || 0), 0);
-  const saldoCaixa = totalEntradas - totalSaidas;
-
+  const totalSaidas = expenses
+    .filter((e: any) => e.category !== 'Movimentação Caixa' || e.description?.startsWith('Saída'))
+    .reduce((sum: number, e: any) => sum + (e.value || 0), 0);
+  
   // Calcular entradas de caixa manual
   const entradasCaixa = cashMovements
     .filter((m: any) => m.description?.startsWith('Entrada'))
     .reduce((sum: number, m: any) => sum + (m.value || 0), 0);
+  
+  const saldoCaixa = totalEntradas + entradasCaixa - totalSaidas;
 
   return {
     sales,
