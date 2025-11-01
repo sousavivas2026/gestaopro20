@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,18 @@ export default function Produtos() {
   const [showForm, setShowForm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [costItems, setCostItems] = useState<CostItem[]>([{ description: "", cost: 0 }]);
+
+  // Load cost items when editing a product
+  useEffect(() => {
+    if (editingProduct?.cost_items) {
+      const items = Array.isArray(editingProduct.cost_items) 
+        ? editingProduct.cost_items 
+        : [];
+      setCostItems(items.length > 0 ? items : [{ description: "", cost: 0 }]);
+    } else {
+      setCostItems([{ description: "", cost: 0 }]);
+    }
+  }, [editingProduct]);
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -86,7 +98,9 @@ export default function Produtos() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const totalDetailedCost = costItems.reduce((sum, item) => sum + (item.cost || 0), 0);
+    // Filter out empty cost items
+    const validCostItems = costItems.filter(item => item.description.trim() && item.cost > 0);
+    const totalDetailedCost = validCostItems.reduce((sum, item) => sum + (item.cost || 0), 0);
     
     const data = {
       name: formData.get('name'),
@@ -95,6 +109,7 @@ export default function Produtos() {
       category: formData.get('category'),
       unit_price: parseFloat(formData.get('unit_price') as string) || 0,
       cost_price: totalDetailedCost > 0 ? totalDetailedCost : (parseFloat(formData.get('cost_price') as string) || 0),
+      cost_items: validCostItems.length > 0 ? validCostItems : [],
       stock_quantity: parseInt(formData.get('stock_quantity') as string) || 0,
       minimum_stock: parseInt(formData.get('minimum_stock') as string) || 0,
       location: formData.get('location'),
@@ -129,9 +144,11 @@ export default function Produtos() {
 
   const handleClone = async (product: any) => {
     const { id, created_date, updated_date, ...clonedData } = product;
+    // Clone with cost_items included
     await createMutation.mutateAsync({
       ...clonedData,
       name: `${clonedData.name} (Cópia)`,
+      cost_items: product.cost_items || [],
     });
   };
 
